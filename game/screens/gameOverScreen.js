@@ -22,4 +22,8 @@ export default function renderGameOverScreen(data) {
   socket.on("startGame", (role) => {
     navigateTo("/game", { nickname: data.nickname, role });
   });
+
+  socket.on("resetGame", () => {
+    navigateTo("/"); 
+  });
 }

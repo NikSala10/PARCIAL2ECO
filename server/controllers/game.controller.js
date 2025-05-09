@@ -10,7 +10,7 @@ const joinGame = async (req, res) => {
     playersDb.addPlayer(nickname, socketId);
 
     const gameData = playersDb.getGameData();
-    emitEvent("userJoined", gameData);
+    emitEvent("userJoined", gameData);  
 
     res.status(200).json({ success: true, players: gameData.players });
   } catch (err) {
@@ -82,6 +82,24 @@ const selectPolo = async (req, res) => {
     const allPlayers = playersDb.getAllPlayers();
 
     if (poloSelected.role === "polo-especial") {
+      myUser.score = (myUser.score || 0) + 50;
+      poloSelected.score = (poloSelected.score || 0) - 10;
+    } else {
+      myUser.score = (myUser.score || 0) - 10;
+
+      const poloEspecial = allPlayers.find(p => p.role === "polo-especial");
+      if (poloEspecial && poloEspecial.id !== poloSelected.id) {
+        poloEspecial.score = (poloEspecial.score || 0) + 10;
+        playersDb.updatePlayer(poloEspecial);
+      }
+    }
+
+
+    playersDb.updatePlayer(myUser);
+    playersDb.updatePlayer(poloSelected);
+    emitEvent("scoreUpdated", playersDb.getGameData());
+
+    if (poloSelected.role === "polo-especial") {
       // Notify all players that the game is over
       allPlayers.forEach((player) => {
         emitToSpecificClient(player.id, "notifyGameOver", {
@@ -96,6 +114,39 @@ const selectPolo = async (req, res) => {
       });
     }
 
+    const winner = allPlayers.find((p) => (p.score || 0) >= 100);
+
+    if (winner) {
+      console.log("Winner found:", winner.nickname); 
+      const rankedPlayers = [...allPlayers].sort((a, b) => (b.score || 0) - (a.score || 0));
+
+      allPlayers.forEach((player) => {
+        console.log("Emitiendo evento 'gameWinner' a:", player.id); 
+        emitEvent("gameWinner", {
+          message: `${winner.nickname} ha ganado el juego con ${winner.score} puntos!`,
+          winner: winner.nickname,
+          score: winner.score,
+          ranking: rankedPlayers.map((p, i) => ({
+            nickname: p.nickname,
+            score: p.score || 0,
+            position: i + 1,
+          })),
+        });
+      });
+    }
+
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const resetGame = async (req, res) => {
+  try {
+    playersDb.resetGame();
+
+    emitEvent("resetGame", {}); 
+
     res.status(200).json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -108,4 +159,5 @@ module.exports = {
   notifyMarco,
   notifyPolo,
   selectPolo,
+  resetGame
 };

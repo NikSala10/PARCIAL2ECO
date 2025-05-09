@@ -21,7 +21,7 @@ const getAllPlayers = () => {
  * @returns {Object} The created player
  */
 const addPlayer = (nickname, socketId) => {
-  const newPlayer = { id: socketId, nickname };
+  const newPlayer = { id: socketId, nickname, score:0 };
   players.push(newPlayer);
   return newPlayer;
 };
@@ -74,6 +74,18 @@ const resetGame = () => {
   players.splice(0, players.length);
 };
 
+
+/**
+ * Update a player object in the database
+ * @param {Object} updatedPlayer - Player object with updated data
+ */
+const updatePlayer = (updatedPlayer) => {
+  const index = players.findIndex((player) => player.id === updatedPlayer.id);
+  if (index !== -1) {
+    players[index] = { ...players[index], ...updatedPlayer };
+  }
+};
+
 module.exports = {
   getAllPlayers,
   addPlayer,
@@ -82,4 +94,5 @@ module.exports = {
   findPlayersByRole,
   getGameData,
   resetGame,
+  updatePlayer,
 };

@@ -1,5 +1,5 @@
-import renderScreen1 from "./screens/screen1.js";
-import renderScreen2 from "./screens/screen2.js";
+import renderScreenResults from "./screens/results.js";
+import renderScreenWinner from "./screens/winner.js";
 
 const socket = io("/", { path: "/real-time" });
 
@@ -14,11 +14,11 @@ function renderRoute(currentRoute) {
   switch (currentRoute?.path) {
     case "/":
       clearScripts();
-      renderScreen1(currentRoute?.data);
+      renderScreenResults(currentRoute?.data);
       break;
-    case "/screen2":
+    case "/winner":
       clearScripts();
-      renderScreen2(currentRoute?.data);
+      renderScreenWinner(currentRoute?.data);
       break;
     default:
       const app = document.getElementById("app");
@@ -31,4 +31,28 @@ function navigateTo(path, data) {
   renderRoute(route);
 }
 
-export { navigateTo, socket };
+async function makeRequest(url, method, body) {
+  try {
+    const BASE_URL = "http://localhost:5050";
+    let response = await fetch(`${BASE_URL}${url}`, {
+      method: method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("API request failed:", error);
+    // Return a failed response object that can be checked by callers
+    return { success: false, error: error.message };
+  }
+}
+
+export { navigateTo, socket, makeRequest };
