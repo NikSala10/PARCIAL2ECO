@@ -4,9 +4,9 @@ export default function renderScreenWinner(data) {
   const app = document.getElementById("app");
   app.innerHTML = `
         <div id="screen2">
-          <h1>Rasultados Finales</h1>
-          <h2 id="msg"></h2>
-          <h3>Ranking de jugadores:</h3>
+          <h1>Resultados Finales</h1>
+          <h3 id="msg"></h3>
+          <h2>Ranking de jugadores:</h2>
           <ul id="all-players"></ul>
           <button id="go-abc-players">Ordenar alfábeticamente</button>
           <button id="reset-btn">Reiniciar Juego</button>
